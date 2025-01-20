@@ -1,5 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,12 +17,20 @@ app.use(express.json());
 //   database: 'pawtner'
 // });
 
-const db = mysql.createConnection({
-    host: 'bfotx4ek5zaan9hn8zey-mysql.services.clever-cloud.com',
-    user: 'udlffsfxkpvdedfc',    // Your MySQL username (default is 'root')
-    password: '5svVgNwjuY1AWRXRwedb',    // Your MySQL password (default is empty for local installations)
-    database: 'bfotx4ek5zaan9hn8zey'
+// const db = mysql.createConnection({
+//     host: 'bfotx4ek5zaan9hn8zey-mysql.services.clever-cloud.com',
+//     user: 'udlffsfxkpvdedfc',    // Your MySQL username (default is 'root')
+//     password: '5svVgNwjuY1AWRXRwedb',    // Your MySQL password (default is empty for local installations)
+//     database: 'bfotx4ek5zaan9hn8zey'
+//   });
+
+  const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   });
+
 
 // Connect to the database
 db.connect((err) => {
