@@ -2,11 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 
-// If in debug mode, load the .env.debug file
-dotenv.config({ path: `.env.${ENV}` });
-
-console.log(`Running in ${ENV} mode`);
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
