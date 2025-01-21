@@ -1,8 +1,18 @@
-require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
+const fs = require('fs');
+const dotenv = require('dotenv');
 
+// Determine the environment
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.debug';
 
+// Load the corresponding .env file
+if (fs.existsSync(envFile)) {
+  dotenv.config({ path: envFile });
+} else {
+  console.error(`Error: ${envFile} not found!`);
+  process.exit(1); // Exit if .env file is missing
+}
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -51,5 +61,5 @@ app.post('/users', (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${process.env.DB_HOST}`);
 });
