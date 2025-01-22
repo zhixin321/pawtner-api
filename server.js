@@ -4,7 +4,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 
 // Determine the environment
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.debug';
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.staging';
 
 // Load the corresponding .env file
 if (fs.existsSync(envFile)) {
