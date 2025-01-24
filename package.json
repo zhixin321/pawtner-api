@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:dev": "cross-env NODE_ENV=debug node server.js",
-    "start:prod": "cross-env NODE_ENV=production node server.js"
+    "start-local": "cross-env NODE_ENV=local node app.js",
+    "start-staging": "cross-env NODE_ENV=staging node app.js",
+    "start-prod": "cross-env NODE_ENV=production node app.js"
   },
   "keywords": [],
   "author": "",
