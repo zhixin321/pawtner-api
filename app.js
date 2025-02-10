@@ -2,7 +2,8 @@ const express = require('express');
 const db = require('./database/db');
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.APP_PORT || 3000;
+const HOST = process.env.APP_URL || 'http://localhost'; // 读取域名
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -33,5 +34,5 @@ app.post('/users', async (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`Server running n ${process.env.NODE_ENV} mode at ${HOST}:${PORT}/`);
 });
