@@ -14,8 +14,6 @@ const envFile = (() => {
     }ƒ
 })();
 
-
-
 // Load the environment file
 if (fs.existsSync(envFile)) {
     dotenv.config({ path: envFile });
