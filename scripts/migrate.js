@@ -17,9 +17,12 @@ async function migrate() {
     `);
     console.log("users 表已创建或已存在");
 
+    await db.query("ALTER TABLE user RENAME TO users;");
+    console.log("users 表已修改为 users");
+
     // 修改 users 表（如果缺少字段，则添加）
     await db.query(`
-        ALTER TABLE user 
+        ALTER TABLE users
         ADD COLUMN IF NOT EXISTS contact VARCHAR(20) NULL,
         ADD COLUMN IF NOT EXISTS role ENUM('owner', 'sitter') DEFAULT 'owner',
         ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

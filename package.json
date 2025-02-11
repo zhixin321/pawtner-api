@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start-local": "cross-env NODE_ENV=local node app.js",
+    "start-local": "cross-env NODE_ENV=local nodemon app.js",
     "start-staging": "cross-env NODE_ENV=staging node app.js",
     "start-prod": "cross-env NODE_ENV=production node app.js",
     "migrate": "node scripts/migrate.js"
@@ -13,10 +13,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.12.0",
     "sqlite": "^5.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
