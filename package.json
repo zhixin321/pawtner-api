@@ -6,7 +6,8 @@
   "scripts": {
     "start-local": "cross-env NODE_ENV=local node app.js",
     "start-staging": "cross-env NODE_ENV=staging node app.js",
-    "start-prod": "cross-env NODE_ENV=production node app.js"
+    "start-prod": "cross-env NODE_ENV=production node app.js",
+    "migrate": "node scripts/migrate.js"
   },
   "keywords": [],
   "author": "",
