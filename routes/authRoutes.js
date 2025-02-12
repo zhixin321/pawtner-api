@@ -27,15 +27,12 @@ router.post("/register", async (req, res) => {
 // 用户登录
 router.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email } = req.body;
 
         const user = await User.findUserByEmail(email);
         if (!user) return res.status(400).json({ msg: "用户不存在" });
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ msg: "密码错误" });
-
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        const token = authMiddleware.generateJwt(user);
 
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     } catch (err) {
@@ -44,7 +41,7 @@ router.post("/login", async (req, res) => {
 });
 
 // 获取用户信息（需身份验证）
-router.get("/user", authMiddleware, async (req, res) => {
+router.get("/user", authMiddleware.verifyJwt, async (req, res) => {
     try {
         const user = await User.findUserById(req.user.id);
         if (!user) return res.status(404).json({ msg: "用户不存在" });
@@ -56,7 +53,7 @@ router.get("/user", authMiddleware, async (req, res) => {
 });
 
 // 获取所有用户列表
-router.get("/users", async (req, res) => {
+router.get("/users", authMiddleware.verifyJwt, async (req, res) => {
     try {
         const [users] = await User.getAllUser();
         res.json({ success: true, users });
