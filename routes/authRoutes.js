@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../model/userModel");
+const Token = require("../model/tokenModel");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -32,10 +32,15 @@ router.post("/login", async (req, res) => {
         const user = await User.findUserByEmail(email);
         if (!user) return res.status(400).json({ msg: "用户不存在" });
 
-        const token = authMiddleware.generateJwt(user);
+        const expiresIn = 60 * 60; // 1 hours
+        const token = authMiddleware.generateJwt(user, expiresIn);
+
+        const expiresAt = new Date(Date.now() + expiresIn * 1000); // 计算过期时间
+        await Token.insertToken(token,user,expiresAt);
 
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     } catch (err) {
+        console.log(err);
         res.status(500).json({ msg: "服务器错误" });
     }
 });
