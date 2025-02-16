@@ -11,7 +11,14 @@ const Token = {
                  expires_at = VALUES(expires_at)`,
                 [user.id, token, expiresAt]  // 这里传入参数数组
             );
-            // await db.query("INSERT INTO tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [user.id, token, expiresAt]);
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    deleteToken: async (token)=> {
+        try {
+            await db.query("DELETE FROM tokens WHERE token = ?", [token]);
         } catch (error) {
             console.log(error);
             throw error;

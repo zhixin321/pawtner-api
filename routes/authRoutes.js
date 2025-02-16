@@ -45,6 +45,21 @@ router.post("/login", async (req, res) => {
     }
 });
 
+// 用户登录
+router.post("/logout", authMiddleware.verifyJwt, async (req, res) => {
+    try {
+        const token = req.header("Authorization").replace("Bearer ", "");
+
+        if (!token) return res.status(401).json({ msg: "无效的令牌，访问被拒绝" });
+
+        await Token.deleteToken(token);
+        res.status(201).json({ msg: " 登出成功" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ msg: "服务器错误" });
+    }
+});
+
 // 获取用户信息（需身份验证）
 router.get("/user", authMiddleware.verifyJwt, async (req, res) => {
     try {
@@ -63,7 +78,6 @@ router.get("/users", authMiddleware.verifyJwt, async (req, res) => {
         const [users] = await User.getAllUser();
         res.json({ success: true, users });
     } catch (error) {
-        console.error("获取用户列表失败:", error);
         res.status(500).json({ success: false, message: "服务器错误" });
     }
 });

@@ -10,17 +10,17 @@ const JwtAuthentication = {
         );
         return token;
     },
-    verifyJwt: async (req, res, next) => {
-        const token = req.header("Authorization");
 
+    verifyJwt: async (req, res, next) => {
+        const token = req.header("Authorization").replace("Bearer ", "");
+        console.log(token);
         if (!token) return res.status(401).json({ msg: "无效的令牌，访问被拒绝" });
 
         try {
-            const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // check token is valid
-    
-            const result = await Token.getToken(token.replace("Bearer ", ""));
+            const result = await Token.getToken(token);
             if (result == null) {
                 return res.status(401).json({ msg: "令牌无效或已过期" });
             }
@@ -28,7 +28,6 @@ const JwtAuthentication = {
             req.user = decoded;
             next();
         } catch (err) {
-            console.log(err);
             res.status(401).json({ msg: "令牌无效" });
         }
     }
