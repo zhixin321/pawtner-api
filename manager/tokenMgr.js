@@ -1,4 +1,6 @@
 const db = require('../database/db');
+const AppException = require('../error/appException');
+const ErrorCodes = require('../error/errorCodes');
 
 const Token = {
     insertToken: async (token, user, expiresAt) => {
@@ -12,7 +14,7 @@ const Token = {
                 [user.id, token, expiresAt]  // 这里传入参数数组
             );
         } catch (error) {
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
         }
     },
 
@@ -20,8 +22,8 @@ const Token = {
         try {
             await db.query("DELETE FROM tokens WHERE token = ?", [token]);
         } catch (error) {
-            console.log(error);
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
+
         }
     },
 
@@ -30,7 +32,7 @@ const Token = {
             const [result] = await db.query("SELECT * FROM tokens WHERE token = ? AND expires_at > NOW()", [token]);
             return result.length > 0 ? result[0] : null;
         } catch (error) {
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
         }
     }
 }

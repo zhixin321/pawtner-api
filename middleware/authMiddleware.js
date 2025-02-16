@@ -1,5 +1,8 @@
 const jwt = require("jsonwebtoken");
-const Token = require("../model/tokenModel");
+const Token = require("../manager/tokenMgr");
+const AppException = require("../error/appException");
+const ErrorCodes = require("../error/errorCodes");
+const ResponseData = require("../model/responseData");
 
 const JwtAuthentication = {
     generateJwt: (user, expiresIn) => {
@@ -12,23 +15,29 @@ const JwtAuthentication = {
     },
 
     verifyJwt: async (req, res, next) => {
-        const token = req.header("Authorization").replace("Bearer ", "");
-        console.log(token);
-        if (!token) return res.status(401).json({ msg: "无效的令牌，访问被拒绝" });
-
         try {
+            const header = req.header("Authorization");
+            if (!header) {
+                throw new AppException(ErrorCodes.UNAUTHORIZED);
+            }
+
+            const token = header.replace("Bearer ", "");
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // check token is valid
             const result = await Token.getToken(token);
             if (result == null) {
-                return res.status(401).json({ msg: "令牌无效或已过期" });
+                throw new AppException(ErrorCodes.UNAUTHORIZED);
             }
-
             req.user = decoded;
             next();
-        } catch (err) {
-            res.status(401).json({ msg: "令牌无效" });
+        } catch (error) {
+            if (error instanceof jwt.TokenExpiredError) {
+                res.status(401).json({ success: false, error: ErrorCodes.UNAUTHORIZED.code, message: error.message });
+            } else {
+                const response = ResponseData.error(error);
+                res.status(error.statusCode).json(response.toJSON());
+            }
         }
     }
 }

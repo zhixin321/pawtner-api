@@ -1,28 +1,11 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
-const User = require("../model/userModel");
-const Token = require("../model/tokenModel");
+const User = require("../manager/userMgr");
+const Token = require("../manager/tokenMgr");
 const authMiddleware = require("../middleware/authMiddleware");
-
 const router = express.Router();
-
-// 用户注册
-router.post("/register", async (req, res) => {
-    try {
-        const { name, email, password, role } = req.body;
-
-        if (await User.findUserByEmail(email)) {
-            return res.status(400).json({ msg: "邮箱已被注册" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await User.createUser(name, email, hashedPassword, role);
-
-        res.status(201).json({ msg: "注册成功" });
-    } catch (err) {
-        res.status(500).json({ msg: "服务器错误" });
-    }
-});
+const ResponseData = require("../model/responseData.js");
+const AppException = require("../error/appException.js");
+const ErrorCodes = require("../error/errorCodes.js");
 
 // 用户登录
 router.post("/login", async (req, res) => {
@@ -30,33 +13,39 @@ router.post("/login", async (req, res) => {
         const { email } = req.body;
 
         const user = await User.findUserByEmail(email);
-        if (!user) return res.status(400).json({ msg: "用户不存在" });
+        if (!user) {
+            throw new AppException(ErrorCodes.NOT_FOUND);
+        }
 
         const expiresIn = 60 * 60; // 1 hours
         const token = authMiddleware.generateJwt(user, expiresIn);
 
         const expiresAt = new Date(Date.now() + expiresIn * 1000); // 计算过期时间
-        await Token.insertToken(token,user,expiresAt);
+        await Token.insertToken(token, user, expiresAt);
 
-        res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ msg: "服务器错误" });
+        const response = ResponseData.success({ token, user });
+        res.json(response.toJSON());
+    } catch (error) {
+        const response = ResponseData.error(error);
+        res.status(error.statusCode).json(response.toJSON());
     }
 });
 
 // 用户登录
 router.post("/logout", authMiddleware.verifyJwt, async (req, res) => {
     try {
-        const token = req.header("Authorization").replace("Bearer ", "");
+        const token = req.header("Authorization");
 
-        if (!token) return res.status(401).json({ msg: "无效的令牌，访问被拒绝" });
+        if (!token) {
+            throw new AppException(ErrorCodes.UNAUTHORIZED);
+        }
 
-        await Token.deleteToken(token);
-        res.status(201).json({ msg: " 登出成功" });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ msg: "服务器错误" });
+        await Token.deleteToken(token.replace("Bearer ", ""));
+        const response = ResponseData.success();
+        res.json(response.toJSON());
+    } catch (error) {
+        const response = ResponseData.error(error);
+        res.status(error.statusCode).json(response.toJSON());
     }
 });
 
@@ -75,10 +64,12 @@ router.get("/user", authMiddleware.verifyJwt, async (req, res) => {
 // 获取所有用户列表
 router.get("/users", authMiddleware.verifyJwt, async (req, res) => {
     try {
-        const [users] = await User.getAllUser();
-        res.json({ success: true, users });
+        const users = await User.getAllUser();
+        const response = ResponseData.success({ users: users });
+        res.json(response.toJSON());
     } catch (error) {
-        res.status(500).json({ success: false, message: "服务器错误" });
+        const response = ResponseData.error(error);
+        res.status(error.statusCode).json(response.toJSON());
     }
 });
 

@@ -1,4 +1,6 @@
 const db = require('../database/db');
+const AppException = require('../error/appException');
+const ErrorCodes = require('../error/errorCodes');
 
 const User = {
     findUserByEmail: async (email) => {
@@ -6,7 +8,7 @@ const User = {
             const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
             return users.length > 0 ? users[0] : null;
         } catch (error) {
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
         }
     },
 
@@ -15,7 +17,7 @@ const User = {
             await db.query("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
                 [name, email, hashedPassword, role || "owner"]);
         } catch (error) {
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
         }
     },
 
@@ -24,7 +26,7 @@ const User = {
             const [users] = await db.query("SELECT * FROM users WHERE id = ?", [id]);
             return users.length > 0 ? users[0] : null;
         } catch (error) {
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
         }
     },
 
@@ -33,7 +35,7 @@ const User = {
             const [users] = await db.query("SELECT * FROM users");
             return users;
         } catch (error) {
-            throw error;
+            throw new AppException(ErrorCodes.DATABASE_ERROR);
         }
     }
 }
