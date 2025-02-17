@@ -32,12 +32,11 @@ const JwtAuthentication = {
             req.user = decoded;
             next();
         } catch (error) {
-            if (error instanceof jwt.TokenExpiredError) {
-                res.status(401).json({ success: false, error: ErrorCodes.UNAUTHORIZED.code, message: error.message });
-            } else {
-                const response = ResponseData.error(error);
-                res.status(error.statusCode).json(response.toJSON());
+            if (!(error instanceof AppException)) {
+                error = new AppException(ErrorCodes.UNAUTHORIZED);
             }
+            const response = ResponseData.error(error);
+            res.status(error.statusCode).json(response.toJSON());
         }
     }
 }
