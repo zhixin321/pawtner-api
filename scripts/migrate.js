@@ -43,8 +43,28 @@ async function migrate() {
             expires_at TIMESTAMP NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
-    `);
+    `).catch(err => {
+        if (err.code !== "ER_DUP_FIELDNAME") {
+            console.error("修改 tokens 表失败:", err);
+        }
+    });
     console.log("tokens 表已创建或已存在");
+
+    // create otps table
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS otps (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            identifier VARCHAR(255) NOT NULL UNIQUE,
+            otp VARCHAR(6) NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `).catch(err => {
+        if (err.code !== "ER_DUP_FIELDNAME") {
+            console.error("修改 otps 表失败:", err);
+        }
+    });
+    console.log("otps 表已创建或已存在");
 
     await db.end();
     console.log("数据库迁移完成！");

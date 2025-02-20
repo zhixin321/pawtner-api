@@ -1,18 +1,30 @@
 const express = require("express");
 const User = require("../manager/userMgr");
 const Token = require("../manager/tokenMgr");
+const Otp = require("../manager/otpMgr");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 const ResponseData = require("../model/responseData.js");
 const AppException = require("../error/appException.js");
 const ErrorCodes = require("../error/errorCodes.js");
+const crypto = require("crypto");
 
 // 用户登录
 router.post("/login", async (req, res) => {
     try {
-        const { email } = req.body;
+        const { identifier, otp } = req.body;
+        if (!identifier || !otp) {
+            throw new AppException(ErrorCodes.INVALID_INPUT);
+        }
 
-        const user = await User.findUserByEmail(email);
+        const result = await Otp.findOtp(identifier);
+        if (!result || result.otp != otp) {
+            throw new AppException(ErrorCodes.NOT_FOUND);
+        } else {
+            await Otp.deleteOtp(identifier);
+        }
+
+        const user = await User.findUserByEmail(identifier);
         if (!user) {
             throw new AppException(ErrorCodes.NOT_FOUND);
         }
@@ -20,7 +32,7 @@ router.post("/login", async (req, res) => {
         const expiresIn = 60 * 60; // 1 hours
         const token = authMiddleware.generateJwt(user, expiresIn);
 
-        const expiresAt = new Date(Date.now() + expiresIn * 1000); // 计算过期时间
+        const expiresAt = new Date(Date.now() + expiresIn * 1000); // token expires at 60 mins
         await Token.insertToken(token, user, expiresAt);
 
         const response = ResponseData.success({ token, user });
@@ -31,7 +43,33 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// 用户登录
+// 获取OTP
+router.post("/get-otp", async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findUserByEmail(email);
+        if (!user) {
+            throw new AppException(ErrorCodes.NOT_FOUND);
+        }
+
+        // generate 6 digits OTP
+        const otp = crypto.randomInt(100000, 999999).toString();
+        const expiresAt = new Date(Date.now() + (5 * 60 * 1000)); // OTP expires at 5 mins
+
+        await Otp.insertOtp(email, otp, expiresAt);
+
+        // sendOtp();
+
+        const response = ResponseData.success({ otp });
+        res.json(response.toJSON());
+    } catch (error) {
+        const response = ResponseData.error(error);
+        res.status(error.statusCode).json(response.toJSON());
+    }
+});
+
+// 用户登出
 router.post("/logout", authMiddleware.verifyJwt, async (req, res) => {
     try {
         const token = req.header("Authorization");
